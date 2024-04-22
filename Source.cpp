@@ -8,7 +8,7 @@
 #include <vector>
 #include "LogitechLCDLib.h"
 #include <gdiplus.h>
-#include <thread> // Include for std::this_thread::sleep_for
+#include <thread> // Include for this_thread::sleep_for
 
 #pragma comment(lib, "gdiplus.lib")
 
@@ -34,7 +34,7 @@ bool SetMonoBackgroundFromFile(const wchar_t* imageName) {
         return false;
     }
 
-    std::vector<BYTE> byteBitmapMono(LOGI_LCD_MONO_WIDTH * LOGI_LCD_MONO_HEIGHT);
+    vector<BYTE> byteBitmapMono(LOGI_LCD_MONO_WIDTH * LOGI_LCD_MONO_HEIGHT);
     Rect rect(0, 0, imageMono->GetWidth(), imageMono->GetHeight());
     BitmapData bitmapData;
     imageMono->LockBits(&rect, ImageLockModeRead, PixelFormat32bppRGB, &bitmapData);
@@ -94,7 +94,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         LogiLcdUpdate();
 
         // Add a delay to reduce CPU usage
-        std::this_thread::sleep_for(std::chrono::milliseconds(100000000)); // Adjust delay as needed
+        this_thread::sleep_for(chrono::hours(24)); // Adjust delay as needed
     }
 
     // This code will never be reached, but included for completeness
