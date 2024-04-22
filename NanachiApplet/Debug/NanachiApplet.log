@@ -1,0 +1,4 @@
+﻿  Source.cpp
+E:\Repos\NanachiApplet\Source.cpp(45,23): warning C4018: <: несоответствие типов со знаком и без знака
+E:\Repos\NanachiApplet\Source.cpp(46,27): warning C4018: <: несоответствие типов со знаком и без знака
+  NanachiApplet.vcxproj -> E:\Repos\NanachiApplet\Debug\NanachiApplet.exe
