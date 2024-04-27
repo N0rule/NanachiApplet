@@ -1,4 +1,0 @@
-﻿  Source.cpp
-E:\Repos\NanachiApplet\Source.cpp(45,23): warning C4018: '<': signed/unsigned mismatch
-E:\Repos\NanachiApplet\Source.cpp(46,27): warning C4018: '<': signed/unsigned mismatch
-  NanachiApplet.vcxproj -> E:\Repos\NanachiApplet\Debug\NanachiApplet.exe
