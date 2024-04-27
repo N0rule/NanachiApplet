@@ -1,103 +1,172 @@
-// SetMonoBackgroundFromFile
-//
-// Loads a .bmp file from the specified file path and converts it to a monochrome
-// image that can be sent to the Logitech LCD device. The function returns true on
-// success and false otherwise.
-
-#include <iostream>
 #include <vector>
-#include "LogitechLCDLib.h"
-#include <gdiplus.h>
-#include <thread> // Include for this_thread::sleep_for
-
-#pragma comment(lib, "gdiplus.lib")
+#include "LogitechLCDLib.h"  // Library for interacting with Logitech LCD displays
+#include <gdiplus.h>  // Library for working with graphics and images
+#include <Windows.h>
+#include <Shlwapi.h>  // Library for path handling
+#include <string>
+#include <thread>  // Library for creating and managing threads
+#pragma comment(lib, "Shlwapi.lib")  // Link with the Shlwapi library
+#pragma comment(lib, "gdiplus.lib")  // Link with the GDI+ library
 
 using namespace std;
 using namespace Gdiplus;
+using namespace this_thread;  // Using namespace for std::this_thread
 
-const wchar_t* imageName = L"res/background.png";
+							  // Function to set the background image on the monochrome LCD display
+bool SetMonoBackgroundFromFile(const wchar_t* imageName)
+{
+	// Check if the image file exists
+	if (!PathFileExistsW(imageName))
+	{
+		wstring errorMessage = L"The image file '";
+		errorMessage += imageName;
+		errorMessage += L"' does not exist.";
+		MessageBoxW(NULL, errorMessage.c_str(), L"NanachiApplet Error", MB_OK | MB_ICONERROR);
+		ExitProcess(EXIT_FAILURE); // Exit the application with an error
+	}
+
+	// Initialize GDI+
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+
+	// Load the image from file
+	Bitmap* imageMono = Bitmap::FromFile(imageName);
+	if (imageMono == nullptr || imageMono->GetWidth() == 0 || imageMono->GetHeight() == 0)
+	{
+		MessageBoxW(NULL, L"Failed to load the image.", L"NanachiApplet Error", MB_OK | MB_ICONERROR);
+		delete imageMono; // Delete the image object if it was created
+		GdiplusShutdown(gdiplusToken);
+		ExitProcess(EXIT_FAILURE); // Exit the application with an error
+	}
 
 
-bool SetMonoBackgroundFromFile(const wchar_t* imageName) {
-    GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+	// Check if the image dimensions match the LCD display resolution
+	if (imageMono->GetWidth() != LOGI_LCD_MONO_WIDTH || imageMono->GetHeight() != LOGI_LCD_MONO_HEIGHT)
+	{
+		delete imageMono;
+		GdiplusShutdown(gdiplusToken);
+		MessageBoxW(NULL, L"Incorrect image dimensions.", L"NanachiApplet Error", MB_OK | MB_ICONERROR);
+		ExitProcess(EXIT_FAILURE); // Exit the application with an error
+	}
 
-    Bitmap* imageMono = Bitmap::FromFile(imageName);
-    if (imageMono == nullptr)
-        return false;
+	// Create a vector to store the bitmap data
+	vector<BYTE> byteBitmapMono(LOGI_LCD_MONO_WIDTH * LOGI_LCD_MONO_HEIGHT);
 
-    // Check that the loaded image has the correct dimensions
-    if (imageMono->GetWidth() != LOGI_LCD_MONO_WIDTH || imageMono->GetHeight() != LOGI_LCD_MONO_HEIGHT) {
-        delete imageMono;
-        GdiplusShutdown(gdiplusToken);
-        return false;
-    }
+	// Lock the bitmap for reading
+	Rect rect(0, 0, imageMono->GetWidth(), imageMono->GetHeight());
+	BitmapData bitmapData;
+	imageMono->LockBits(&rect, ImageLockModeRead, PixelFormat32bppRGB, &bitmapData);
 
-    vector<BYTE> byteBitmapMono(LOGI_LCD_MONO_WIDTH * LOGI_LCD_MONO_HEIGHT);
-    Rect rect(0, 0, imageMono->GetWidth(), imageMono->GetHeight());
-    BitmapData bitmapData;
-    imageMono->LockBits(&rect, ImageLockModeRead, PixelFormat32bppRGB, &bitmapData);
+	// Get the bitmap data and convert it to monochrome format
+	BYTE* srcData = static_cast<BYTE*>(bitmapData.Scan0);
+	int stride = bitmapData.Stride;
 
-    BYTE* srcData = static_cast<BYTE*>(bitmapData.Scan0);
-    int stride = bitmapData.Stride;
+	for (int y = 0; y < imageMono->GetHeight(); y++)
+	{
+		for (int x = 0; x < imageMono->GetWidth(); x++)
+		{
+			int index = y * stride + x * 4;
+			byteBitmapMono[y * imageMono->GetWidth() + x] = srcData[index] >= 128 ? 255 : 0;
+		}
+	}
 
-    for (int y = 0; y < imageMono->GetHeight(); y++) {
-        for (int x = 0; x < imageMono->GetWidth(); x++) {
-            int index = y * stride + x * 4;
-            // Convert the color value from RGB to monochrome
-            byteBitmapMono[y * imageMono->GetWidth() + x] = srcData[index] >= 128 ? 255 : 0;
-        }
-    }
+	// Unlock the bitmap
+	imageMono->UnlockBits(&bitmapData);
 
-    imageMono->UnlockBits(&bitmapData);
-    delete imageMono;
+	// Clean up the image object
+	delete imageMono;
 
-    bool success = LogiLcdMonoSetBackground(&byteBitmapMono[0]);
-    GdiplusShutdown(gdiplusToken);
-    return success;
+	// Set the monochrome background on the LCD display
+	bool success = LogiLcdMonoSetBackground(&byteBitmapMono[0]);
+
+	// Shutdown GDI+
+	GdiplusShutdown(gdiplusToken);
+
+	return success;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    wchar_t projectName[] = L"Nanachi Applet";
-    // Initialize the Logitech LCD device with the specified project name and
-    // a monochrome display type
-    if (!LogiLcdInit(projectName, LOGI_LCD_TYPE_MONO)) {
-        wcerr << "Failed to find monocrome keyboard." << endl;
-        // Shut down the applet if there was an error
-        LogiLcdShutdown();
-        return 1;
-    }
-    else
-        wcout << "Keyboard found!" << endl;
+// Flag to track if the button is pressed
 
-    wchar_t firstString[] = L"Привет";
-    if (LogiLcdMonoSetText(1, firstString))
-        wcout << "1 text is Written!" << endl;
 
-    wchar_t secondString[] = L"N0rule";
-    if (LogiLcdMonoSetText(2, secondString))
-        wcout << "2 text is Written!" << endl;
+// Function to handle button press events
+void buttonHandler() {
+	bool buttonPressed = false;
+	while (true) {
+		// Check if the button is currently pressed
+		bool isCurrentlyPressed = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
 
-    // Load the image from file and set it as the background
-    if (!SetMonoBackgroundFromFile(imageName)) {
-        wcerr << "Failed to set background image." << endl;
-        // Shut down the applet if there was an error
-        LogiLcdShutdown();
-        return 1;
-    }
-    else
-        wcout << imageName << " " << "as background Set!" << endl;
+		// Button has been pressed
+		if (isCurrentlyPressed && !buttonPressed) {
+			buttonPressed = true;
+			SetMonoBackgroundFromFile(L"res/background_stare.png");
+			LogiLcdUpdate();
+		}
+		// Button has been released
+		else if (!isCurrentlyPressed && buttonPressed) {
+			buttonPressed = false;
+			SetMonoBackgroundFromFile(L"res/background.png");
+			LogiLcdUpdate();
+		}
 
-    while (true) {
-        // Update the LCD display
-        LogiLcdUpdate();
+		// Sleep for a short duration to avoid consuming too much CPU
+		sleep_for(chrono::milliseconds(100));
+	}
+}
 
-        // Add a delay to reduce CPU usage
-        this_thread::sleep_for(chrono::hours(24)); // Adjust delay as needed
-    }
+// Main entry point
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	srand(time(0)); // Seed the random number generator
 
-    // This code will never be reached, but included for completeness
-    LogiLcdShutdown();
-    return 0;
+	wchar_t projectName[] = L"Nanachi Applet";
+	// Initialize the Logitech LCD library
+	if (!LogiLcdInit(L"Nanachi Applet", LOGI_LCD_TYPE_MONO))
+	{
+		MessageBoxW(NULL, L"Failed to find monochrome keyboard.", L"NanachiApplet Error", MB_OK | MB_ICONERROR);
+		LogiLcdShutdown();
+		return 1;
+	}
+
+	// Set some initial text on the LCD display
+	LogiLcdMonoSetText(0, L"");
+	LogiLcdMonoSetText(1, L"Привет");
+	LogiLcdMonoSetText(2, L"N0rule");
+	LogiLcdMonoSetText(3, L"");
+
+	bool isBlinking = false;
+	thread buttonThread(buttonHandler); // Start a new thread for button handling
+
+	while (true) {
+		// Generate random times for normal and blinking states
+		int normalTime = rand() % 14000 + 1000; // Random time between 1 second and 15 seconds for normal face
+		int blinkTime = rand() % 750 + 250; // Random time between 250 milliseconds and 1 second for blinking
+
+		//DEBUG CODE,UNUSED
+		//wstring normalTimeStr = to_wstring(normalTime); // Convert the integers to wide strings
+		//wstring blinkTimeStr = to_wstring(blinkTime);
+
+		//// Send the strings to SetText
+		//LogiLcdMonoSetText(0, &normalTimeStr[0]);
+		//LogiLcdMonoSetText(3, &blinkTimeStr[0]);
+		//LogiLcdUpdate();
+
+		// Display the blinking or normal background
+		if (isBlinking) {
+			SetMonoBackgroundFromFile(L"res/background_blink.png");
+			LogiLcdUpdate();
+			sleep_for(chrono::milliseconds(blinkTime));
+		}
+		else {
+			SetMonoBackgroundFromFile(L"res/background.png");
+			LogiLcdUpdate();
+			sleep_for(chrono::milliseconds(normalTime));
+		}
+
+		// Toggle the blinking state
+		isBlinking = !isBlinking;
+	}
+
+	LogiLcdShutdown();
+	return 0;
 }

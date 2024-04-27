@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "E:\\Repos\\NanachiApplet\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{CA3B9201-A851-4272-BA8B-CCEDD73098B5}|NanachiApplet.vcxproj|E:\\Repos\\NanachiApplet\\Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{CA3B9201-A851-4272-BA8B-CCEDD73098B5}|NanachiApplet.vcxproj|solutionrelative:Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Repos\\NanachiApplet\\Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -24,7 +24,7 @@
               "RelativeDocumentMoniker": "Source.cpp",
               "ToolTip": "E:\\Repos\\NanachiApplet\\Source.cpp",
               "RelativeToolTip": "Source.cpp",
-              "ViewState": "AQIAAEgAAAAAAAAAAAAIwFcAAAAFAAAA",
+              "ViewState": "AQIAAEoAAAAAAAAAAAAAAE4AAAAsAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-04-22T18:19:19.86Z",
               "EditorCaption": ""

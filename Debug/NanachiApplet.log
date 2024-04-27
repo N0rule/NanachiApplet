@@ -1,0 +1,8 @@
+﻿  Source.cpp
+e:\repos\nanachiapplet\source.cpp(64): warning C4018: '<': signed/unsigned mismatch
+e:\repos\nanachiapplet\source.cpp(66): warning C4018: '<': signed/unsigned mismatch
+e:\repos\nanachiapplet\source.cpp(119): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+LogitechLCDLib.lib(LogitechLCDLib.obj) : warning LNK4099: PDB 'vc110.pdb' was not found with 'LogitechLCDLib.lib(LogitechLCDLib.obj)' or at 'E:\Repos\NanachiApplet\Debug\vc110.pdb'; linking object as if no debug info
+LogitechLCDLib.lib(stdafx.obj) : warning LNK4099: PDB 'vc110.pdb' was not found with 'LogitechLCDLib.lib(stdafx.obj)' or at 'E:\Repos\NanachiApplet\Debug\vc110.pdb'; linking object as if no debug info
+  NanachiApplet.vcxproj -> E:\Repos\NanachiApplet\Debug\NanachiApplet.exe
+  NanachiApplet.vcxproj -> E:\Repos\NanachiApplet\Debug\NanachiApplet.pdb (Full PDB)
