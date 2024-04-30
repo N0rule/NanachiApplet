@@ -1,6 +1,7 @@
 <h1 align="center">
-  <p align="center"> <img width:="auto" height ="350" src="https://github.com/N0rule/NanachiApplet/assets/30196774/5d114d58-74e2-4c59-abf9-e5b90678f9ff"> </p>
-  
+  <p align="center"> <img width:="auto" height ="350" src="https://github.com/N0rule/NanachiApplet/assets/30196774/d8be3d68-dd67-42ea-9d8b-abaaff74573d"> </p>
+
+
   NanachiApplet
   <br>
 </h1>
