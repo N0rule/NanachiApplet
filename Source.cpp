@@ -91,26 +91,91 @@ bool SetMonoBackgroundFromFile(const wchar_t* imageName)
 
 // Function to handle button press events
 void buttonHandler() {
-	bool buttonPressed = false;
-	while (true) {
-		// Check if the button is currently pressed
-		bool isCurrentlyPressed = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
+	bool isButtonPressed[4] = { false }; // Array to store button states for buttons 0 to 3
+	bool prevButtonState[4] = { false }; // Array to store previous button states
 
-		// Button has been pressed
-		if (isCurrentlyPressed && !buttonPressed) {
-			buttonPressed = true;
-			SetMonoBackgroundFromFile(L"res/background_stare.png");
-			LogiLcdUpdate();
-		}
-		// Button has been released
-		else if (!isCurrentlyPressed && buttonPressed) {
-			buttonPressed = false;
-			SetMonoBackgroundFromFile(L"res/background.png");
-			LogiLcdUpdate();
+	while (true) {
+		// Check each button state
+		for (int i = 0; i < 4; ++i) {
+			// Get the current state of the button
+			bool currentButtonState = false;
+			switch (i) {
+			case 0:
+				currentButtonState = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
+				break;
+			case 1:
+				currentButtonState = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
+				break;
+			case 2:
+				currentButtonState = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2);
+				break;
+			case 3:
+				currentButtonState = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3);
+				break;
+			default:
+				// Invalid button index
+				break;
+			}
+
+			// Check if button state has changed
+			if (currentButtonState != prevButtonState[i]) {
+				// Button state has changed, perform action accordingly
+				if (currentButtonState) {
+					// Button pressed, perform action
+					switch (i) {
+					case 0:
+						// Action for button 1 
+						SetMonoBackgroundFromFile(L"res/nanachi_stare.png");
+						break;
+					case 1:
+						// Action for button 2 
+						break;
+					case 2:
+						// Action for button 3 
+						break;
+					case 3:
+						// Action for button 4 
+						break;
+					default:
+						// Invalid button index
+						break;
+					}
+				}
+				else {
+					// Button released, set default background
+					switch (i) {
+					case 0:
+						// Release action for button 1
+						SetMonoBackgroundFromFile(L"res/nanachi.png");
+						break;
+					case 1:
+						// Release action for button 2
+						break;
+					case 2:
+						// Release action for button 3
+						break;
+					case 3:
+						// Release action for button 4
+						break;
+					default:
+						// Invalid button index
+						break;
+					}
+				}
+
+				// Update LCD screen
+				LogiLcdUpdate();
+
+				// Update previous button state
+				prevButtonState[i] = currentButtonState;
+			}
+
+			// Update button state in the array
+			isButtonPressed[i] = currentButtonState;
 		}
 
 		// Sleep for a short duration to avoid consuming too much CPU
-		sleep_for(chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -134,39 +199,70 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	LogiLcdMonoSetText(2, L"N0rule");
 	LogiLcdMonoSetText(3, L"");
 
-	bool isBlinking = false;
 	thread buttonThread(buttonHandler); // Start a new thread for button handling
 
 	while (true) {
+
+		bool isBlinking = false;
+		bool isLookingLeft = false;
+		bool isLookingRight = false;
+
 		// Generate random times for normal and blinking states
 		int normalTime = rand() % 14000 + 1000; // Random time between 1 second and 15 seconds for normal face
 		int blinkTime = rand() % 750 + 250; // Random time between 250 milliseconds and 1 second for blinking
+		int lookTime = rand() % 2000 + 1000; // Random time between 1 second and 3 seconds for looking left/right
+
+		// Generate a random action
+		int action = rand() % 100; // Generate a number between 0 and 99
+
+								   // Determine the action based on the random number
+		if (action < 35) { // 0 to 34 (35% chance)
+			isBlinking = true;
+		}
+		else if (action < 55) { // 35 to 54 (20% chance)
+			isLookingLeft = true;
+		}
+		else if (action < 75) { // 55 to 74 (20% chance)
+			isLookingRight = true;
+		}
 
 		//DEBUG CODE,UNUSED
 		//wstring normalTimeStr = to_wstring(normalTime); // Convert the integers to wide strings
 		//wstring blinkTimeStr = to_wstring(blinkTime);
-
+		//wstring b1 = to_wstring(isBlinking);
+		//wstring l1 = to_wstring(isLookingLeft);
+		//wstring r1 = to_wstring(isLookingRight);
 		//// Send the strings to SetText
 		//LogiLcdMonoSetText(0, &normalTimeStr[0]);
 		//LogiLcdMonoSetText(3, &blinkTimeStr[0]);
 		//LogiLcdUpdate();
+		//LogiLcdMonoSetText(0, &b1[0]);
+		//LogiLcdMonoSetText(1, &l1[0]);
+		//LogiLcdMonoSetText(2, &r1[0]);
+		//LogiLcdUpdate();
 
 		// Display the blinking or normal background
 		if (isBlinking) {
-			SetMonoBackgroundFromFile(L"res/background_blink.png");
+			SetMonoBackgroundFromFile(L"res/nanachi_blink.png");
 			LogiLcdUpdate();
 			sleep_for(chrono::milliseconds(blinkTime));
 		}
+		else if (isLookingLeft) {
+			SetMonoBackgroundFromFile(L"res/nanachi_lookleft.png");
+			LogiLcdUpdate();
+			sleep_for(chrono::milliseconds(lookTime));
+		}
+		else if (isLookingRight) {
+			SetMonoBackgroundFromFile(L"res/nanachi_lookright.png");
+			LogiLcdUpdate();
+			sleep_for(chrono::milliseconds(lookTime));
+		}
 		else {
-			SetMonoBackgroundFromFile(L"res/background.png");
+			SetMonoBackgroundFromFile(L"res/nanachi.png");
 			LogiLcdUpdate();
 			sleep_for(chrono::milliseconds(normalTime));
 		}
-
-		// Toggle the blinking state
-		isBlinking = !isBlinking;
 	}
-
 	LogiLcdShutdown();
 	return 0;
 }
