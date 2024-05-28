@@ -86,8 +86,63 @@ bool SetMonoBackgroundFromFile(const wchar_t* imageName)
 	return success;
 }
 
-// Flag to track if the button is pressed
+// variable to check if time shoud be visible
+bool showTime = true;
 
+// Flag to track if the button is pressed
+void getCurrentSystemTime() {
+	while (true) {
+		if (showTime) {
+			SYSTEMTIME st;
+			GetLocalTime(&st); // Use GetLocalTime for local time
+
+			// Format the date string
+			wchar_t dateString[16];
+			swprintf(dateString, 16, L"%02d.%02d.%04d", st.wDay, st.wMonth, st.wYear);
+			// Set date on line 0
+			LogiLcdMonoSetText(0, dateString);
+
+
+			// Format the time string
+			wchar_t timeString[16];
+			swprintf(timeString, 16, L"%d:%02d:%02d", st.wHour % 12 == 0 ? 12 : st.wHour % 12, st.wMinute, st.wSecond);
+			// Set time on line 1
+			LogiLcdMonoSetText(1, timeString);
+
+
+
+			LogiLcdUpdate();
+		}
+		else {
+			// Clear both lines when not showing time
+			LogiLcdMonoSetText(0, L"");
+			LogiLcdMonoSetText(1, L"");
+			LogiLcdUpdate();
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+}
+
+// variable to check if text should be visible
+bool showText = true;
+
+// Flag to track text button
+void SetTextLCD() {
+		if (showText) {
+			// LogiLcdMonoSetText(0, L"");  // reserved for time
+			LogiLcdMonoSetText(1, L"");
+			LogiLcdMonoSetText(2, L"Привет");
+			LogiLcdMonoSetText(3, L"N0rule");
+			LogiLcdUpdate();
+		}
+		else {
+			// LogiLcdMonoSetText(0, L"");  // reserved for time 
+			LogiLcdMonoSetText(1, L"");
+			LogiLcdMonoSetText(2, L"");
+			LogiLcdMonoSetText(3, L"");
+			LogiLcdUpdate();
+		}
+}
 
 // Function to handle button press events
 void buttonHandler() {
@@ -96,6 +151,7 @@ void buttonHandler() {
 
 	while (true) {
 		// Check each button state
+
 		for (int i = 0; i < 4; ++i) {
 			// Get the current state of the button
 			bool currentButtonState = false;
@@ -129,9 +185,11 @@ void buttonHandler() {
 						break;
 					case 1:
 						// Action for button 2 
+						showTime = !showTime;
 						break;
 					case 2:
 						// Action for button 3 
+						showText = !showText;
 						break;
 					case 3:
 						// Action for button 4 
@@ -162,7 +220,6 @@ void buttonHandler() {
 						break;
 					}
 				}
-
 				// Update LCD screen
 				LogiLcdUpdate();
 
@@ -175,7 +232,7 @@ void buttonHandler() {
 		}
 
 		// Sleep for a short duration to avoid consuming too much CPU
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(150));
 	}
 }
 
@@ -193,13 +250,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 1;
 	}
 
-	// Set some initial text on the LCD display
-	LogiLcdMonoSetText(0, L"");
-	LogiLcdMonoSetText(1, L"Привет");
-	LogiLcdMonoSetText(2, L"N0rule");
-	LogiLcdMonoSetText(3, L"");
+
 
 	thread buttonThread(buttonHandler); // Start a new thread for button handling
+	thread CurrentSystemTimeThread(getCurrentSystemTime); // Start a new thread for time handling
+	//thread SetTextLCDThread(SetTextLCD); // Start a new thread for text handling
+
+	// Set some initial text on the LCD display
+	
+	// LogiLcdMonoSetText(0, L"");
+	// LogiLcdMonoSetText(1, L"Привет");
+	// LogiLcdMonoSetText(2, L"N0rule");
+	// LogiLcdMonoSetText(3, L"");
+	 LogiLcdMonoSetText(2, L"Привет");
+	 LogiLcdMonoSetText(3, L"N0rule");
 
 	while (true) {
 
@@ -240,7 +304,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		//LogiLcdMonoSetText(1, &l1[0]);
 		//LogiLcdMonoSetText(2, &r1[0]);
 		//LogiLcdUpdate();
-
 		// Display the blinking or normal background
 		if (isBlinking) {
 			SetMonoBackgroundFromFile(L"res/nanachi_blink.png");
@@ -262,6 +325,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			LogiLcdUpdate();
 			sleep_for(chrono::milliseconds(normalTime));
 		}
+
 	}
 	LogiLcdShutdown();
 	return 0;
