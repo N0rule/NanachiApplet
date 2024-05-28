@@ -12,8 +12,8 @@ Simple applet for Logitech G15 keyboards, that display image and text using LCDS
 <br>
 
 ## ⌚Supported devices
-- Logitech G15 v1
-- Logitech G15 v2
+- Logitech G15 v1 (tested working)
+- Logitech G15 v2 (tested working)
 
 <h1 align="center"> 🤝 Contributing 🤝 </h1>
 
